@@ -2,23 +2,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-SEMIMAJOR_AXIS_EARTH = 227939366000 #m
-ECCENTRICITY_EARTH = 0.0934
-RADIUS_EARTH = 3389.5000 #m
+SEMIMAJOR_AXIS_EARTH = 	149598023000 #m
+ECCENTRICITY_EARTH = 0.0167086
+RADIUS_EARTH = 6371000 #m
+RADIUS_SUN = 6.957 * 10**8
 SOLAR_LUMINOSITY = 3.828 * 10**26 #W/m2s
 
-EARTH_DENSITY = 3934 #kg/m3
-HEAT_CAPACITY_ROCK = 2000 #
-STEFANS_CONSTANT = 5.670374419 * 10**-8 #
+EARTH_DENSITY = 5513 #kg/m3
 
-CRUST_DEPTH = 0.2 #m
-ROTATIONAL_VELOCITY_EARTH = (2*np.pi) / (24.5*3600)
-EMISSIVITY = 0.75
+STEFANS_CONSTANT = 5.670374419 * 10**-8
+SOLAR_TEMP = 15700000
 
-def emission_from_point(I, emissivity, T, dt):
-    dT_dt = (I - emissivity*STEFANS_CONSTANT*T**4) / (EARTH_DENSITY * HEAT_CAPACITY_ROCK * CRUST_DEPTH)
-    return dT_dt * dt
 
+def calculate_temp(r_a, r_e, E):
+    alpha = r_a + ((1-r_a)**2)*(r_e)/(1-(r_e)*(r_a))
+    d = (SEMIMAJOR_AXIS_EARTH) * (1 - ECCENTRICITY_EARTH**2) / (1 - ECCENTRICITY_EARTH*np.cos(0))
+    solar_constant = ((SOLAR_LUMINOSITY/(4*np.pi*d**2)))
+    print(solar_constant)
+    return np.sqrt(np.sqrt(((1-alpha)*solar_constant)/(2*STEFANS_CONSTANT*(2-E))))
 
 def solar_intensity(theta, phi):
     phi -= np.pi 
@@ -28,27 +29,18 @@ def solar_intensity(theta, phi):
 
 
 def main():
+    """
     phi_space = np.linspace(-(np.pi), np.pi, 100)
+    time_history = np.linspace(0,24,24*3600)
 
     intensity_chart = []
     for val in phi_space:
         intensity_chart.append(solar_intensity(np.pi/2, val))
+    """
 
-    temperature_history = [210]
-    intensity_history = []
-    time_history = np.linspace(0,240,240)
-    for minute in time_history:
-        phi = ROTATIONAL_VELOCITY_EARTH * minute*3600
-        intensity = solar_intensity(np.pi/2, phi)
-        intensity_history.append(intensity)
-        temperature = temperature_history[-1] + emission_from_point(intensity, EMISSIVITY, temperature_history[-1], 3600)
-        temperature_history.append(temperature)
-    temperature_history = temperature_history[:-1]
-    
-    plt.plot(time_history, temperature_history)
-    plt.plot(time_history, intensity_history)
-    plt.xticks()
-    plt.xlabel("Time (hours)")
+    E_space = np.linspace(0,1,100)
+
+    plt.plot(E_space, calculate_temp(0.255, 0.102, E_space))
     plt.show()
 
 
